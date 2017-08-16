@@ -3,7 +3,7 @@ var express = require('express'),
     path = require('path'),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server);
-    names = []; //array to store usernames
+    usernames = {}; //array to store usernames
 
 server.listen(8080);
 
@@ -17,15 +17,15 @@ io.on('connection', function(socket){
 
     socket.on('new user', function(data, callback){
         //if name already exists in the array return false 
-        if (names.indexOf(data) != -1){
+        if (data in usernames){
             callback(false)
         } 
         // else push to names array
         else {
             callback(true);
             socket.name = data;
-            names.push(socket.name);
-            io.emit('username', names)
+            usernames[socket.name] = socket;
+            io.emit('username', Object.keys(usernames));
         }
     });
 
@@ -38,7 +38,7 @@ io.on('connection', function(socket){
     socket.on('disconnect', function(data){
         if (!socket.name) return; //if name not set, disoconnect!
         //remove the disconnected user
-        names.splice(names.indexOf(socket.name), 1);
-        io.emit('username', names)
+        delete users[socket.name];
+        io.emit('username', Object.keys(usernames))
     });
 });
